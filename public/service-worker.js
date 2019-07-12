@@ -22,6 +22,7 @@ const CACHE_NAME = 'static-cache-v1';
 
 // CODELAB: Add list of files to cache here.
 const FILES_TO_CACHE = [
+  '/offline.css',
   '/offline.html',
 ];
 
@@ -55,19 +56,17 @@ self.addEventListener('activate', (evt) => {
 });
 
 self.addEventListener('fetch', (evt) => {
-  console.log('[ServiceWorker] Fetch', evt.request.url);
-  // CODELAB: Add fetch event handler here.
-  if (evt.request.mode !== 'navigate') {
-    // Not a page navigation, bail.
-    return;
-  }
   evt.respondWith(
-      fetch(evt.request)
-          .catch(() => {
-            return caches.open(CACHE_NAME)
-                .then((cache) => {
-                  return cache.match('offline.html');
-                });
-          })
-  );
+    caches.match(evt.request).then(response => {
+      if (response) {
+        return response;
+      }
+      return fetch(evt.request).catch(err => {
+        console.log("error", err);
+        return caches.match("offline.html")
+      })
+    })
+    
+  )
+
 });
